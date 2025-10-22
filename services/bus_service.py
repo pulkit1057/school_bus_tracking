@@ -3,6 +3,15 @@ from models.bus_schema import Bus
 from bson import ObjectId
 
 
+async def bus_exists(bus_id:str):
+    buses_collection = database.get_collection('buses')
+    _id = ObjectId(bus_id)
+    bus = await buses_collection.find_one(_id)
+    
+    if bus:
+        return True
+    return False
+
 async def register_bus(bus_details:Bus):
     bus_collection = database.get_collection('buses')
     bus = await bus_collection.insert_one(bus_details.model_dump())
@@ -19,3 +28,6 @@ async def get_bus_id(student_id:str):
 
 async def get_bus_location(bus_id:str):
     bus_location_collection = database.get_collection('bus_location')
+    
+    return {}
+

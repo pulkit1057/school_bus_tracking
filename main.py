@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException
 import os
-from services.student_service import create_student, get_student
-from services.bus_service import get_bus_id, get_bus_location, register_bus
+from services.student_service import create_student, get_student, user_exists, assign_bus_to_user, bus_already_assigned
+from services.bus_service import get_bus_id, get_bus_location, register_bus, bus_exists
 from models.student_schema import Student
-from models.bus_schema import Bus
+from models.bus_schema import Bus, RouteDetails, MappingDetails, AssignBusDetails
 
 app = FastAPI()
 
@@ -37,10 +37,27 @@ async def user_info(student_id:str):
     raise HTTPException(status_code=404, detail="Student not found")
 
 
+@app.post('/assign-bus-stop/')
+async def assign_bus_stop(assign_stop_details:AssignBusDetails):
+    coordinates = await get_geocode(assign_stop_details.address)
+    pass
+
 
 @app.post('/assign-bus/')
-async def assign_bus():
-    return {}
+async def assign_bus(mapping_details:MappingDetails):
+    
+    if await user_exists(mapping_details.user_id) == False:
+        raise HTTPException(status_code=404, detail="Student not found")
+    
+    if await bus_exists(mapping_details.bus_id) == False:
+        raise HTTPException(status_code=404, detail="Bus not found")
+    
+    if await bus_already_assigned(mapping_details.user_id):
+        raise HTTPException(status_code=404,detail="User already been allotted with a bus")
+    
+    await assign_bus_to_user(mapping_details)
+    
+    return {"message":"Assigned a bus successfully"}
 
 
 @app.get('get-location/{student_id}')
@@ -54,4 +71,13 @@ async def get_location(student_id:str):
 
 @app.post('update-bus-coordinates/{bus_id}')
 async def update_bus_coordinates():
+    return {}
+
+
+
+
+
+@app.post('/assign-route-to-bus/')
+async def assign_route(route_details:RouteDetails):
+    
     return {}
